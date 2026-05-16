@@ -7,7 +7,7 @@ import "leaflet/dist/leaflet.css";
 import "./ArretsMap.css";
 
 const LYON_CENTER: L.LatLngExpression = [45.764, 4.835];
-const DEFAULT_ZOOM = 12;
+const DEFAULT_ZOOM = 16;
 /** Niveau OSM où les noms de rues deviennent lisibles en ville (tuiles standard). */
 const MIN_ZOOM_ARRETS = 16;
 
@@ -116,6 +116,17 @@ export function ArretsMap({
 }: ArretsMapProps) {
   return (
     <div className="arrets-map-wrap">
+
+      <a 
+        className="arrets-map-badge github-badge"
+        style={{ paddingRight: '160px' }}
+        href="https://github.com/wxcvbnlmjk/tcl-live" target="_blank" rel="noreferrer">
+        <img
+          alt="github tcl-live"
+          src="https://img.shields.io/badge/github-tcl%20live-blue?logo=github"
+        />
+      </a>
+
       <a
         className="arrets-map-badge"
         href="https://data.grandlyon.com/"
