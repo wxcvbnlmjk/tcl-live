@@ -3,13 +3,17 @@ import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Arret, TclPassage } from "../types/data";
 import { buildArretPopupContent } from "../lib/arretPopup";
+import { createArretDivIcon } from "../lib/arretMarkerIcon";
+import { getArretMarkerLabel } from "../lib/arretMarkerLabel";
 import "leaflet/dist/leaflet.css";
 import "./ArretsMap.css";
 
 const LYON_CENTER: L.LatLngExpression = [45.764, 4.835];
-const DEFAULT_ZOOM = 16;
+const DEFAULT_ZOOM = 13;
 /** Niveau OSM où les noms de rues deviennent lisibles en ville (tuiles standard). */
 const MIN_ZOOM_ARRETS = 16;
+
+type ArretMarker = L.Marker & { arretId: number };
 
 interface ArretsMarkersProps {
   arrets: Arret[];
@@ -33,24 +37,29 @@ function ArretsMarkers({
 
   const buildMarkerGroup = useCallback(() => {
     const group = L.featureGroup();
+    const zoom = map.getZoom();
 
     for (const arret of arretsRef.current) {
       if (arret.lat == null || arret.lon == null) continue;
 
-      const marker = L.circleMarker([arret.lat, arret.lon], {
-        radius: 5,
-        weight: 1,
-        opacity: 0.9,
-        fillOpacity: 0.85,
-        color: "#1e3a5f",
-        fillColor: "#2563eb",
-      });
+      const passages = passagesRef.current.get(arret.id) ?? [];
+      const label = getArretMarkerLabel(passages);
+
+      const marker = L.marker([arret.lat, arret.lon], {
+        icon: createArretDivIcon(label, zoom),
+      }) as ArretMarker;
+
+      marker.arretId = arret.id;
 
       marker.on("click", () => {
-        const passages = passagesRef.current.get(arret.id) ?? [];
+        const currentPassages = passagesRef.current.get(arret.id) ?? [];
         marker
           .bindPopup(
-            buildArretPopupContent(arret, passages, arretsByIdRef.current),
+            buildArretPopupContent(
+              arret,
+              currentPassages,
+              arretsByIdRef.current,
+            ),
             { maxWidth: 320 },
           )
           .openPopup();
@@ -60,32 +69,62 @@ function ArretsMarkers({
     }
 
     return group;
-  }, []);
+  }, [map]);
+
+  const updateMarkersIcons = useCallback(
+    (group: L.FeatureGroup) => {
+      const zoom = map.getZoom();
+      group.eachLayer((layer) => {
+        if (!(layer instanceof L.Marker)) return;
+        const marker = layer as ArretMarker;
+        const passages = passagesRef.current.get(marker.arretId) ?? [];
+        const label = getArretMarkerLabel(passages);
+        marker.setIcon(createArretDivIcon(label, zoom));
+      });
+    },
+    [map],
+  );
 
   const syncMarkersVisibility = useCallback(() => {
     const zoom = map.getZoom();
     const shouldShow = zoom >= MIN_ZOOM_ARRETS;
 
     if (!shouldShow) {
-      if (groupRef.current && map.hasLayer(groupRef.current)) {
+      if (groupRef.current) {
         map.removeLayer(groupRef.current);
+        groupRef.current = null;
       }
       return;
     }
 
     if (!groupRef.current) {
       groupRef.current = buildMarkerGroup();
+    } else {
+      updateMarkersIcons(groupRef.current);
     }
 
     if (!map.hasLayer(groupRef.current)) {
       groupRef.current.addTo(map);
     }
-  }, [map, buildMarkerGroup]);
+  }, [map, buildMarkerGroup, updateMarkersIcons]);
+
+  const rebuildMarkers = useCallback(() => {
+    if (groupRef.current) {
+      map.removeLayer(groupRef.current);
+      groupRef.current = null;
+    }
+    syncMarkersVisibility();
+  }, [map, syncMarkersVisibility]);
 
   useEffect(() => {
-    groupRef.current = null;
-    syncMarkersVisibility();
-  }, [arrets, syncMarkersVisibility]);
+    rebuildMarkers();
+    return () => {
+      if (groupRef.current) {
+        map.removeLayer(groupRef.current);
+        groupRef.current = null;
+      }
+    };
+  }, [arrets, passagesByArretId, map, rebuildMarkers]);
 
   useEffect(() => {
     map.on("zoomend", syncMarkersVisibility);
@@ -93,10 +132,6 @@ function ArretsMarkers({
 
     return () => {
       map.off("zoomend", syncMarkersVisibility);
-      if (groupRef.current) {
-        map.removeLayer(groupRef.current);
-        groupRef.current = null;
-      }
     };
   }, [map, syncMarkersVisibility]);
 
@@ -116,11 +151,13 @@ export function ArretsMap({
 }: ArretsMapProps) {
   return (
     <div className="arrets-map-wrap">
-
-      <a 
+      <a
         className="arrets-map-badge github-badge"
-        style={{ paddingRight: '160px' }}
-        href="https://github.com/wxcvbnlmjk/tcl-live" target="_blank" rel="noreferrer">
+        style={{ paddingRight: "160px" }}
+        href="https://github.com/wxcvbnlmjk/tcl-live"
+        target="_blank"
+        rel="noreferrer"
+      >
         <img
           alt="github tcl-live"
           src="https://img.shields.io/badge/github-tcl%20live-blue?logo=github"
@@ -140,23 +177,21 @@ export function ArretsMap({
       </a>
 
       <MapContainer
-      className="arrets-map"
-      center={LYON_CENTER}
-      zoom={DEFAULT_ZOOM}
-      preferCanvas
-      scrollWheelZoom
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <ArretsMarkers
-        arrets={arrets}
-        arretsById={arretsById}
-        passagesByArretId={passagesByArretId}
-      />
-    </MapContainer>
- 
+        className="arrets-map"
+        center={LYON_CENTER}
+        zoom={DEFAULT_ZOOM}
+        scrollWheelZoom
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <ArretsMarkers
+          arrets={arrets}
+          arretsById={arretsById}
+          passagesByArretId={passagesByArretId}
+        />
+      </MapContainer>
     </div>
   );
 }
