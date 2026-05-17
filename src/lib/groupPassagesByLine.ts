@@ -1,9 +1,14 @@
 import type { TclPassage } from "../types/data";
 
+export interface PassageDelaiEntry {
+  delaipassage: string;
+  heurepassage: string;
+}
+
 export interface PassageLineGroup {
   ligne: string;
   idtarretdestination: number;
-  delais: string[];
+  passage: PassageDelaiEntry;
 }
 
 /** Clé de tri croissante pour delaipassage (ex. « Proche », « 2 min », « 20h53 »). */
@@ -27,34 +32,39 @@ export function groupPassagesByLine(
 ): PassageLineGroup[] {
   const groups = new Map<
     string,
-    { ligne: string; idtarretdestination: number; delais: Set<string> }
+    {
+      ligne: string;
+      idtarretdestination: number;
+      passage: PassageDelaiEntry;
+      sortKey: number;
+    }
   >();
 
   for (const passage of passages) {
-    const key = `${passage.ligne}|${passage.idtarretdestination}`;
-    let group = groups.get(key);
-    if (!group) {
-      group = {
+    const key = passage.ligne;
+    const sortKey = parseDelaiSortKey(passage.delaipassage);
+    const existing = groups.get(key);
+
+    if (!existing || sortKey < existing.sortKey) {
+      groups.set(key, {
         ligne: passage.ligne,
         idtarretdestination: passage.idtarretdestination,
-        delais: new Set(),
-      };
-      groups.set(key, group);
+        sortKey,
+        passage: {
+          delaipassage: passage.delaipassage,
+          heurepassage: passage.heurepassage,
+        },
+      });
     }
-    group.delais.add(passage.delaipassage);
   }
 
   return [...groups.values()]
-    .map((group) => ({
-      ligne: group.ligne,
-      idtarretdestination: group.idtarretdestination,
-      delais: [...group.delais].sort(
-        (a, b) => parseDelaiSortKey(a) - parseDelaiSortKey(b),
-      ),
+    .map(({ ligne, idtarretdestination, passage }) => ({
+      ligne,
+      idtarretdestination,
+      passage,
     }))
-    .sort(
-      (a, b) =>
-        a.ligne.localeCompare(b.ligne, "fr", { numeric: true }) ||
-        a.idtarretdestination - b.idtarretdestination,
+    .sort((a, b) =>
+      a.ligne.localeCompare(b.ligne, "fr", { numeric: true }),
     );
 }

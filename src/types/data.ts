@@ -11,6 +11,8 @@ export interface TclPassage {
   delaipassage: string;
   direction: string;
   idtarretdestination: number;
+  heurepassage: string;
+  last_update_fme: string;
 }
 
 export interface DataFile<T> {

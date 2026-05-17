@@ -28,6 +28,11 @@
   margin: 0 0 6px;
 }
 
+.arret-popup-maj {
+  color: #4b5563;
+  font-size: 12px;
+}
+
 .arret-popup ul {
   margin: 8px 0 0;
   padding-left: 18px;
@@ -46,6 +51,27 @@
 }
 
 .arret-popup-delais {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.4;
+}
+
+.arret-popup-delai-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.arret-popup-delai-row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.arret-popup-delai-row span {
+  color: #4b5563;
+  font-size: 12px;
 }
