@@ -19,7 +19,7 @@ function App() {
   useEffect(() => {
     void loadArrets();
     void loadPassages();
-    const interval = setInterval(() => void loadPassages(), 30000);
+    const interval = setInterval(() => void loadPassages(), 120000);
     return () => clearInterval(interval);
   }, []);
 

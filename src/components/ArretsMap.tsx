@@ -2,9 +2,13 @@ import { useCallback, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Arret, TclPassage } from "../types/data";
-import { buildArretPopupContent } from "../lib/arretPopup";
 import { createArretDivIcon } from "../lib/arretMarkerIcon";
 import { getArretMarkerLabel } from "../lib/arretMarkerLabel";
+import {
+  openArretPopup,
+  refreshOpenArretPopups,
+  type ArretMarker,
+} from "../lib/openArretPopup";
 import "leaflet/dist/leaflet.css";
 import "./ArretsMap.css";
 
@@ -12,8 +16,6 @@ const LYON_CENTER: L.LatLngExpression = [45.764, 4.835];
 const DEFAULT_ZOOM = 13;
 /** Niveau OSM où les noms de rues deviennent lisibles en ville (tuiles standard). */
 const MIN_ZOOM_ARRETS = 16;
-
-type ArretMarker = L.Marker & { arretId: number };
 
 interface ArretsMarkersProps {
   arrets: Arret[];
@@ -35,6 +37,14 @@ function ArretsMarkers({
   const arretsRef = useRef(arrets);
   arretsRef.current = arrets;
 
+  const openPopupForMarker = useCallback((marker: ArretMarker) => {
+    const arret = arretsByIdRef.current.get(marker.arretId);
+    if (!arret) return;
+
+    const passages = passagesRef.current.get(marker.arretId) ?? [];
+    openArretPopup(marker, arret, passages, arretsByIdRef.current);
+  }, []);
+
   const buildMarkerGroup = useCallback(() => {
     const group = L.featureGroup();
     const zoom = map.getZoom();
@@ -51,25 +61,16 @@ function ArretsMarkers({
 
       marker.arretId = arret.id;
 
-      marker.on("click", () => {
-        const currentPassages = passagesRef.current.get(arret.id) ?? [];
-        marker
-          .bindPopup(
-            buildArretPopupContent(
-              arret,
-              currentPassages,
-              arretsByIdRef.current,
-            ),
-            { maxWidth: 320 },
-          )
-          .openPopup();
+      marker.on("click", (event) => {
+        L.DomEvent.stopPropagation(event);
+        openPopupForMarker(marker);
       });
 
       group.addLayer(marker);
     }
 
     return group;
-  }, [map]);
+  }, [map, openPopupForMarker]);
 
   const updateMarkersIcons = useCallback(
     (group: L.FeatureGroup) => {
@@ -124,7 +125,21 @@ function ArretsMarkers({
         groupRef.current = null;
       }
     };
-  }, [arrets, passagesByArretId, map, rebuildMarkers]);
+  }, [arrets, map, rebuildMarkers]);
+
+  useEffect(() => {
+    if (!groupRef.current) {
+      syncMarkersVisibility();
+      return;
+    }
+
+    updateMarkersIcons(groupRef.current);
+    refreshOpenArretPopups(
+      groupRef.current,
+      arretsByIdRef.current,
+      passagesRef.current,
+    );
+  }, [passagesByArretId, syncMarkersVisibility, updateMarkersIcons]);
 
   useEffect(() => {
     map.on("zoomend", syncMarkersVisibility);
