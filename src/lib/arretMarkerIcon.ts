@@ -8,8 +8,8 @@ function escapeHtml(text: string): string {
     .replaceAll('"', "&quot;");
 }
 
-const REFERENCE_ZOOM = 16;
-const BASE_SIZE = 17;
+const REFERENCE_ZOOM = 11;
+const BASE_SIZE = 15;
 const MIN_MARKER_SIZE = 12;
 const MAX_MARKER_SIZE = 27;
 
@@ -23,7 +23,7 @@ export function createArretDivIcon(
   zoom: number,
 ): L.DivIcon {
   const size = markerSizeForZoom(zoom);
-  const fontSize = label === "+" ? Math.round(size * 0.55) : Math.round(size * 0.45);
+  const fontSize = label === "+" ? Math.round(size * 0.55) : Math.round(size * 0.38);
   const text = label ? escapeHtml(label) : "";
 
   const html = label
