@@ -37,11 +37,17 @@
 }
 
 .arret-marker span {
+  position: relative;
+  z-index: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
   padding: 0 2px;
+}
+
+.arret-marker--timed {
+  border-width: 1.5px;
 }
 
 .arret-marker--empty {

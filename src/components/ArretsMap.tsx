@@ -2,11 +2,13 @@ import { useCallback, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Arret, TclPassage } from "../types/data";
+import { getArretMarkerColors } from "../lib/arretMarkerColor";
 import { createArretDivIcon } from "../lib/arretMarkerIcon";
 import { getArretMarkerLabel } from "../lib/arretMarkerLabel";
 import {
+  clearActiveArretPopup,
   openArretPopup,
-  refreshOpenArretPopups,
+  refreshArretPopup,
   type ArretMarker,
 } from "../lib/openArretPopup";
 import "leaflet/dist/leaflet.css";
@@ -34,16 +36,21 @@ function ArretsMarkers({
   const arretsByIdRef = useRef(arretsById);
   arretsByIdRef.current = arretsById;
   const groupRef = useRef<L.FeatureGroup | null>(null);
+  const openArretIdRef = useRef<number | null>(null);
   const arretsRef = useRef(arrets);
   arretsRef.current = arrets;
 
-  const openPopupForMarker = useCallback((marker: ArretMarker) => {
-    const arret = arretsByIdRef.current.get(marker.arretId);
-    if (!arret) return;
+  const openPopupForMarker = useCallback(
+    (marker: ArretMarker) => {
+      const arret = arretsByIdRef.current.get(marker.arretId);
+      if (!arret) return;
 
-    const passages = passagesRef.current.get(marker.arretId) ?? [];
-    openArretPopup(marker, arret, passages, arretsByIdRef.current);
-  }, []);
+      openArretIdRef.current = marker.arretId;
+      const passages = passagesRef.current.get(marker.arretId) ?? [];
+      openArretPopup(marker, arret, passages, arretsByIdRef.current, map);
+    },
+    [map],
+  );
 
   const buildMarkerGroup = useCallback(() => {
     const group = L.featureGroup();
@@ -54,9 +61,12 @@ function ArretsMarkers({
 
       const passages = passagesRef.current.get(arret.id) ?? [];
       const label = getArretMarkerLabel(passages);
+      if (label === null) continue;
+
+      const colors = getArretMarkerColors(passages, label);
 
       const marker = L.marker([arret.lat, arret.lon], {
-        icon: createArretDivIcon(label, zoom),
+        icon: createArretDivIcon(label, zoom, colors),
       }) as ArretMarker;
 
       marker.arretId = arret.id;
@@ -80,7 +90,9 @@ function ArretsMarkers({
         const marker = layer as ArretMarker;
         const passages = passagesRef.current.get(marker.arretId) ?? [];
         const label = getArretMarkerLabel(passages);
-        marker.setIcon(createArretDivIcon(label, zoom));
+        if (label === null) return;
+        const colors = getArretMarkerColors(passages, label);
+        marker.setIcon(createArretDivIcon(label, zoom, colors));
       });
     },
     [map],
@@ -128,25 +140,45 @@ function ArretsMarkers({
   }, [arrets, map, rebuildMarkers]);
 
   useEffect(() => {
-    if (!groupRef.current) {
-      syncMarkersVisibility();
-      return;
+    if (groupRef.current) {
+      map.removeLayer(groupRef.current);
+      groupRef.current = null;
     }
 
-    updateMarkersIcons(groupRef.current);
-    refreshOpenArretPopups(
-      groupRef.current,
-      arretsByIdRef.current,
-      passagesRef.current,
-    );
-  }, [passagesByArretId, syncMarkersVisibility, updateMarkersIcons]);
+    if (openArretIdRef.current != null) {
+      const passages =
+        passagesRef.current.get(openArretIdRef.current) ?? [];
+      if (getArretMarkerLabel(passages) === null) {
+        map.closePopup();
+        clearActiveArretPopup();
+        openArretIdRef.current = null;
+      }
+    }
+
+    syncMarkersVisibility();
+
+    if (openArretIdRef.current != null) {
+      refreshArretPopup(
+        openArretIdRef.current,
+        arretsByIdRef.current,
+        passagesRef.current,
+      );
+    }
+  }, [passagesByArretId, map, syncMarkersVisibility]);
 
   useEffect(() => {
+    const onPopupClose = () => {
+      openArretIdRef.current = null;
+      clearActiveArretPopup();
+    };
+
     map.on("zoomend", syncMarkersVisibility);
+    map.on("popupclose", onPopupClose);
     syncMarkersVisibility();
 
     return () => {
       map.off("zoomend", syncMarkersVisibility);
+      map.off("popupclose", onPopupClose);
     };
   }, [map, syncMarkersVisibility]);
 

@@ -1,4 +1,5 @@
 import L from "leaflet";
+import type { MarkerColors } from "./arretMarkerColor";
 
 function escapeHtml(text: string): string {
   return text
@@ -19,16 +20,27 @@ export function markerSizeForZoom(zoom: number): number {
 }
 
 export function createArretDivIcon(
-  label: string | null,
+  label: string,
   zoom: number,
+  colors: MarkerColors | null = null,
 ): L.DivIcon {
   const size = markerSizeForZoom(zoom);
-  const fontSize = label === "+" ? Math.round(size * 0.55) : Math.round(size * 0.38);
-  const text = label ? escapeHtml(label) : "";
+  const fontSize =
+    label === "+" ? Math.round(size * 0.55) : Math.round(size * 0.38);
+  const text = escapeHtml(label);
 
-  const html = label
-    ? `<div class="arret-marker" style="width:${size}px;height:${size}px;font-size:${fontSize}px"><span>${text}</span></div>`
-    : `<div class="arret-marker arret-marker--empty" style="width:${size}px;height:${size}px"></div>`;
+  const colorStyle = colors
+    ? `background:${colors.fill};border-color:${colors.border};color:${colors.text};`
+    : "";
+
+  const textShadow =
+    colors && colors.text === "#ffffff"
+      ? "text-shadow:0 0 2px rgba(15,23,42,0.85);"
+      : colors
+        ? "text-shadow:0 0 2px rgba(255,255,255,0.9);"
+        : "";
+
+  const html = `<div class="arret-marker${colors ? " arret-marker--timed" : ""}" style="width:${size}px;height:${size}px;font-size:${fontSize}px;${colorStyle}${textShadow}"><span>${text}</span></div>`;
 
   return L.divIcon({
     className: "arret-marker-icon",

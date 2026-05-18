@@ -5,50 +5,45 @@ import { buildArretPopupContent } from "./arretPopup";
 const POPUP_OPTIONS: L.PopupOptions = {
   maxWidth: 320,
   autoClose: true,
-  closeOnClick: false,
+  closeOnClick: true,
 };
 
 export type ArretMarker = L.Marker & { arretId: number };
 
+let activePopup: L.Popup | null = null;
+
+/** Ouvre la popup sur la carte (sans bindPopup sur le marker, plus fiable au re-clic). */
 export function openArretPopup(
   marker: ArretMarker,
   arret: Arret,
   passages: TclPassage[],
   arretsById: Map<number, Arret>,
+  map: L.Map,
 ): void {
   const content = buildArretPopupContent(arret, passages, arretsById);
 
-  if (!marker.getPopup()) {
-    marker.bindPopup(content, POPUP_OPTIONS);
-  } else {
-    marker.setPopupContent(content);
-  }
+  activePopup = L.popup(POPUP_OPTIONS)
+    .setLatLng(marker.getLatLng())
+    .setContent(content);
 
-  if (!marker.isPopupOpen()) {
-    marker.openPopup();
-
-  } else {
-    marker.getPopup()?.update();
-  }
-
+  activePopup.openOn(map);
 }
 
-export function refreshOpenArretPopups(
-  group: L.FeatureGroup,
+export function refreshArretPopup(
+  arretId: number,
   arretsById: Map<number, Arret>,
   passagesByArretId: Map<number, TclPassage[]>,
 ): void {
-  group.eachLayer((layer) => {
-    if (!(layer instanceof L.Marker) || !layer.isPopupOpen()) return;
+  if (!activePopup?.isOpen()) return;
 
-    const marker = layer as ArretMarker;
-    const arret = arretsById.get(marker.arretId);
-    if (!arret) return;
+  const arret = arretsById.get(arretId);
+  if (!arret) return;
 
-    const passages = passagesByArretId.get(marker.arretId) ?? [];
-    marker.setPopupContent(
-      buildArretPopupContent(arret, passages, arretsById),
-    );
-    marker.getPopup()?.update();
-  });
+  const passages = passagesByArretId.get(arretId) ?? [];
+  activePopup.setContent(buildArretPopupContent(arret, passages, arretsById));
+  activePopup.update();
+}
+
+export function clearActiveArretPopup(): void {
+  activePopup = null;
 }
