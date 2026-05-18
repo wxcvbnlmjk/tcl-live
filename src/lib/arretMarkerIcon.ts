@@ -9,13 +9,31 @@ function escapeHtml(text: string): string {
     .replaceAll('"', "&quot;");
 }
 
-const REFERENCE_ZOOM = 11;
-const BASE_SIZE = 15;
-const MIN_MARKER_SIZE = 12;
+const REFERENCE_ZOOM = 30;
+const BASE_SIZE = 30;
+const MIN_MARKER_SIZE = 6;
 const MAX_MARKER_SIZE = 27;
 
 export function markerSizeForZoom(zoom: number): number {
-  const size = BASE_SIZE * (zoom / REFERENCE_ZOOM);
+  const size = BASE_SIZE * ((zoom + 1) / (REFERENCE_ZOOM + 1));
+
+  switch (zoom) {
+    case 12: 
+    return 6;  
+    case 13:
+    return 9;    
+    case 14:
+    return 14;    
+    case 15:
+    return 20;      
+    case 16:
+    return 22;    
+    case 17:
+    return 24;
+    case 18:
+    return 26; 
+  }
+
   return Math.min(MAX_MARKER_SIZE, Math.max(MIN_MARKER_SIZE, Math.round(size)));
 }
 
@@ -27,6 +45,9 @@ export function createArretDivIcon(
   const size = markerSizeForZoom(zoom);
   const fontSize =
     label === "+" ? Math.round(size * 0.55) : Math.round(size * 0.38);
+  if (zoom < 15) {
+    label = "";
+  }
   const text = escapeHtml(label);
 
   const colorStyle = colors

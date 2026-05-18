@@ -96,6 +96,13 @@
   line-height: 1.4;
 }
 
+.arret-popup-span {
+  font-weight: bold;
+  font-size: 10px;
+  position: relative;
+  top: -10px;
+}
+
 .arret-popup-delai-row {
   display: flex;
   flex-direction: column;

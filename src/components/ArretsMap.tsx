@@ -15,9 +15,9 @@ import "leaflet/dist/leaflet.css";
 import "./ArretsMap.css";
 
 const LYON_CENTER: L.LatLngExpression = [45.764, 4.835];
-const DEFAULT_ZOOM = 13;
+const DEFAULT_ZOOM = 12;
 /** Niveau OSM où les noms de rues deviennent lisibles en ville (tuiles standard). */
-const MIN_ZOOM_ARRETS = 16;
+const MIN_ZOOM_ARRETS = 12;
 
 interface ArretsMarkersProps {
   arrets: Arret[];
