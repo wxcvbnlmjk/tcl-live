@@ -132,7 +132,12 @@ export function getArretMarkerColors(
   passages: TclPassage[],
   label: string,
 ): MarkerColors | null {
-  if (label === "+" || passages.length === 0) {
+
+  // if (label === "+" || passages.length === 0) {
+  //   return null;
+  // }
+
+  if (passages.length === 0) {
     return null;
   }
 

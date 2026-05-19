@@ -68,12 +68,7 @@ export function buildArretPopupContent(
                 <strong>${delai}</strong>
                 <span>Passage : ${heure}</span>
               </div>
-              <div>
-                <span class="arret-popup-span" style="font-weight: bold"></span><span class="arret-popup-span" style="color: red">Proche</span>
-                <span class="arret-popup-span" style="color: red">→1mn</span><span class="arret-popup-span" style="color: orange"> →5min</span>
-                <span class="arret-popup-span" style="color: green">→6mn</span><span class="arret-popup-span" style="color: blue"> →40min</span>
-                <span class="arret-popup-span" style="color: purple">→41min</span>
-              </div>
+
             </div>
           </li>`;
         })
@@ -85,6 +80,12 @@ export function buildArretPopupContent(
       <p><strong>Arrêt</strong> ${escapeHtml(arret.nom)}</p>
       ${lastUpdateHtml}
       <ul>${rows}</ul>
+        <div>
+          <span class="arret-popup-span" style="font-weight: bold"></span><span class="arret-popup-span" style="color: red">Proche</span>
+          <span class="arret-popup-span" style="color: red">🚌1mn</span><span class="arret-popup-span" style="color: orange"> 🚌5min</span>
+          <span class="arret-popup-span" style="color: green">🚌6mn</span><span class="arret-popup-span" style="color: blue"> 🚌40min</span>
+          <span class="arret-popup-span" style="color: purple">🚌41min</span>
+        </div>      
     </div>
   `;
 }

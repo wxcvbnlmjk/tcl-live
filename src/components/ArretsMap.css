@@ -103,6 +103,15 @@
   top: -10px;
 }
 
+.arret-popup-invert-span {
+  font-weight: bold;
+  font-size: 10px;
+  position: relative;
+  top: -10px;
+  display: inline-block;
+  transform: scaleX(-1);
+}
+
 .arret-popup-delai-row {
   display: flex;
   flex-direction: column;
