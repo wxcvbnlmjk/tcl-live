@@ -129,17 +129,11 @@ function colorsFromPassage(passage: TclPassage): MarkerColors {
 
 /** Couleurs selon le passage le plus proche ; null pour le style par défaut (ex. « + »). */
 export function getArretMarkerColors(
-  passages: TclPassage[],
-  label: string,
+  passages: TclPassage[] 
+
 ): MarkerColors | null {
 
-  // if (label === "+" || passages.length === 0) {
-  //   return null;
-  // }
 
-  if (passages.length === 0) {
-    return null;
-  }
 
   return colorsFromPassage(getReferencePassage(passages));
 }

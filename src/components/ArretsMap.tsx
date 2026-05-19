@@ -63,7 +63,7 @@ function ArretsMarkers({
       const label = getArretMarkerLabel(passages);
       if (label === null) continue;
 
-      const colors = getArretMarkerColors(passages, label);
+      const colors = getArretMarkerColors(passages);
 
       const marker = L.marker([arret.lat, arret.lon], {
         icon: createArretDivIcon(label, zoom, colors),
@@ -91,7 +91,7 @@ function ArretsMarkers({
         const passages = passagesRef.current.get(marker.arretId) ?? [];
         const label = getArretMarkerLabel(passages);
         if (label === null) return;
-        const colors = getArretMarkerColors(passages, label);
+        const colors = getArretMarkerColors(passages);
         marker.setIcon(createArretDivIcon(label, zoom, colors));
       });
     },
