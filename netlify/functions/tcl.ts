@@ -23,6 +23,11 @@ export const handler: Handler = async (_event: HandlerEvent) => {
   }
 
   console.log(`[tcl] Login: ${login}`);
+  // Afficher un aperçu du password pour vérification
+  const passwordPreview = password.length > 0 
+    ? `${password[0]}${'*'.repeat(Math.max(0, password.length - 2))}${password[password.length - 1]}`
+    : "vide";
+  console.log(`[tcl] Password aperçu: ${passwordPreview}`);
   const authorization = `Basic ${Buffer.from(`${login}:${password}`, "utf8").toString("base64")}`;
   console.log(`[tcl] Authorization header créé: Basic ${authorization.substring(6, 20)}...`);
 
