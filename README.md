@@ -73,7 +73,7 @@ tcl-live/
 ## Prérequis
 
 - [Node.js](https://nodejs.org/) 22 (voir `.nvmrc`)
-- Compte **Data Grand Lyon** ou mode démo
+- Compte **Data Grand Lyon**
 
 Mot de passe du portail données (distinct de l’email) :  
 https://data.grandlyon.com/portail/fr/mot-de-passe-oublie
@@ -97,9 +97,6 @@ cp .env.example .env
 ```env
 TCL_LOGIN=votre-email@example.com
 TCL_PASSWORD="votre-mot-de-passe"
-
-# ou, pour le compte de démonstration documenté par Grand Lyon :
-# TCL_USE_DEMO=true
 ```
 
 > Si le mot de passe contient `#`, le mettre entre **guillemets** dans `.env` (sinon le reste de la ligne est interprété comme un commentaire).
@@ -136,8 +133,7 @@ npm run preview
    - **Build command** : `npm run build`
    - **Publish directory** : `dist`
 3. Ajouter les variables d’environnement dans **Site configuration → Environment variables** :
-   - `TCL_LOGIN` et `TCL_PASSWORD`, **ou**
-   - `TCL_USE_DEMO` = `true`
+   - `TCL_LOGIN` et `TCL_PASSWORD`
 4. Déployer.
 
 La route `/api/tcl` est redirigée vers la fonction serverless `netlify/functions/tcl.ts` (timeout 26 s pour la volumineuse réponse JSON).

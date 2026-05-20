@@ -18,7 +18,7 @@ export async function fetchTclPassages(): Promise<TclPassage[]> {
   if (!response.ok) {
     if (response.status === 401) {
       throw new Error(
-        "Authentification refusée. Vérifiez TCL_LOGIN / TCL_PASSWORD (.env local ou variables Netlify), ou TCL_USE_DEMO=true.",
+        "Authentification refusée. Vérifiez TCL_LOGIN / TCL_PASSWORD (.env local ou variables Netlify).",
       );
     }
     throw new Error(`Erreur API TCL: ${response.status}`);

@@ -1,18 +1,9 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { TCL_GRANDLYON_URL } from "../../shared/tclApi";
 
-function getCredentials(): { login: string; password: string } {
-  if (process.env.TCL_USE_DEMO === "true") {
-    return { login: "demo", password: "demo4dev" };
-  }
-  return {
-    login: process.env.TCL_LOGIN ?? "",
-    password: process.env.TCL_PASSWORD ?? "",
-  };
-}
-
 export const handler: Handler = async (_event: HandlerEvent) => {
-  const { login, password } = getCredentials();
+  const login = process.env.TCL_LOGIN;
+  const password = process.env.TCL_PASSWORD;
 
   if (!login || !password) {
     return {
@@ -20,7 +11,7 @@ export const handler: Handler = async (_event: HandlerEvent) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         error:
-          "Identifiants manquants. Définissez TCL_LOGIN et TCL_PASSWORD (ou TCL_USE_DEMO=true) dans les variables d'environnement Netlify.",
+          "Identifiants manquants. Définissez TCL_LOGIN et TCL_PASSWORD dans les variables d'environnement Netlify.",
       }),
     };
   }

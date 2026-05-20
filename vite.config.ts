@@ -34,13 +34,8 @@ function createTclProxy(login?: string, password?: string): ProxyOptions {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
-  const useDemo = env.TCL_USE_DEMO === 'true'
-  const login = useDemo ? 'demo' : env.TCL_LOGIN
-  const password = useDemo ? 'demo4dev' : env.TCL_PASSWORD
-
-  if (useDemo) {
-    console.log('[tcl-live] Mode démo activé (TCL_USE_DEMO=true)')
-  }
+  const login = env.TCL_LOGIN
+  const password = env.TCL_PASSWORD
 
   const tclProxy = createTclProxy(login, password)
 
